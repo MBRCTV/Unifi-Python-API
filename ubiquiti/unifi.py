@@ -103,14 +103,18 @@ class API(object):
         ap_data = {}
         ap_data['disabled'] = disabled
         for ids in device_ids:
-            r = self._session.post("{}/api/s/{}/rest/device/{}".format(self._baseurl, self._site, ids), verify=self._verify_ssl, data=json.dumps(ap_data))
+            r = self._session.put("{}/api/s/{}/rest/device/{}".format(self._baseurl, self._site, ids), verify=self._verify_ssl, data=json.dumps(ap_data))
             self._current_status_code = r.status_code
+            
+            if not r.ok:
+                if self._current_status_code == 401:
+                    raise LoggedInException("Invalid login, or login has expired")
+                else:
+                    raise LoggedInException(f"code {self._current_status_code}")
 
-            if self._current_status_code == 401:
-                raise LoggedInException("Invalid login, or login has expired")
 
-            data = r.json()['data']
-            print(json.dumps(data, indent=4))
+            _data = r.json()['data']
+            # print(json.dumps(data, indent=4))
 
     def ap_stat(self, macaddress: list):
 
@@ -123,4 +127,6 @@ class API(object):
 
             data = r.json()['data']
             print(json.dumps(data, indent=4))
+
+        return data
 
